@@ -1,7 +1,6 @@
 {
-    "name": "beholder-watcher",
+    "name": "@tipsypixie/beholder-watcher",
     "version": "1.0.0",
-    "private": true,
     "license": "Copyright (c) DXM corporation. All rights reserved.",
     "author": {
         "name": "Seongjae Hwang",
@@ -45,5 +44,8 @@
         "lint-staged": "^9.4.3",
         "sort-package-json": "^1.23.1",
         "standard": "^14.3.1"
+    },
+    "publishConfig": {
+        "registry": "https://npm.pkg.github.com/"
     }
 }

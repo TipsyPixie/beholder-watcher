@@ -8,7 +8,7 @@ const argv = yargs
   .option('file', {
     alias: 'f',
     description: 'target JSON file',
-    type: 'object'
+    type: 'string'
   })
   .help('help')
   .argv
