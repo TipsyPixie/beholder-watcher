@@ -1,10 +1,10 @@
 const pm2 = require('./pm2wrapper')
 const os = require('os')
-const request = require('request-promise-native')
+const { get } = require('request-promise-native')
 const psaux = require('psaux')
 
 const httpWatcher = async ({ uri, responseField }) => {
-  const response = await request({
+  const response = await get({
     uri: encodeURI(uri),
     headers: { 'User-Agent': 'Beholder-Watcher' },
     json: true
@@ -80,16 +80,16 @@ const watcher = (instanceType) => {
   }
 }
 
-const watch = async (serverName, serverInfo) => {
+const watch = async (serviceName, serverInfo) => {
   if (serverInfo.instanceType == null) {
     throw Error('instanceType required')
   }
   const result = {
-    serverName: serverName,
+    serviceName: serviceName,
     ...await watcher(serverInfo.instanceType.trim().toLowerCase())(serverInfo)
   }
   if (Object.keys(result).length === 0) {
-    throw Error(`${serverName} got nothing to report`)
+    throw Error(`${serviceName} got nothing to report`)
   }
   return result
 }

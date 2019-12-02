@@ -2,7 +2,9 @@
 
 const yargs = require('yargs')
 const fs = require('fs')
+
 const watch = require('./libs/watch')
+const Server = require('./libs/server')
 
 const argv = yargs
   .option('file', {
@@ -20,8 +22,14 @@ if (argv.file == null) {
 
 try {
   const targetFile = JSON.parse(fs.readFileSync(argv.file).toString())
-  Object.entries(targetFile.targets).forEach(([serverName, serverInfo]) => {
-    watch(serverName, serverInfo).then(console.log)
+  Object.entries(targetFile.targets).forEach(async ([serviceName, serverInfo]) => {
+    try {
+      const report = await watch(serviceName, serverInfo)
+      console.log(report)
+      await new Server(targetFile.monitorHost).submit(report)
+    } catch (err) {
+      console.error(err.message)
+    }
   })
 } catch (err) {
   console.error(err.message)
