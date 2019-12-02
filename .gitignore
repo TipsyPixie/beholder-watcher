@@ -1,0 +1,19 @@
+### IDE
+.idea
+.vscode
+
+### Environment
+.DS_Store
+./config/livesettings.js
+/node_modules
+db
+
+### Temporary Files
+*.swp
+*.tmp
+/tmp
+
+### Log
+*.log
+/logs
+/log
