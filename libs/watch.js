@@ -30,18 +30,19 @@ const httpWatcher = async ({ uri, responseField }) => {
 
 const pm2Watcher = async ({ identifier, uri, responseField }) => {
   try {
-    const instance = await pm2.describe(identifier)
-    let result = {
-      memoryUsage: Math.ceil(instance.monit.memory / os.totalmem() * 10000) / 100,
-      cpuUsage: instance.monit.cpu
-    }
+    const instances = await pm2.describe(identifier)
+    let result = instances.reduce((totalUsage, instance) => ({
+        cpuUsage: totalUsage.cpuUsage + instance.monit.cpu,
+        memoryUsage: totalUsage.memoryUsage + Math.ceil(instance.monit.memory / os.totalmem() * 10000) / 100,
+      }), { cpuUsage: 0, memoryUsage: 0 }
+    )
 
     if (uri != null) {
       result = Object.assign(await httpWatcher({ uri, responseField }), result)
     }
     return result
   } catch (err) {
-    console.error(err)
+    console.error(err.message)
     return {}
   }
 }
@@ -62,7 +63,7 @@ const uwsgiWatcher = async ({ pid, uri, responseField }) => {
     }
     return result
   } catch (err) {
-    console.error(err)
+    console.error(err.message)
     return {}
   }
 }

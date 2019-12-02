@@ -27,9 +27,7 @@ try {
       const report = await watch(serviceName, serverInfo)
       console.log(report)
       await new Server(targetFile.monitorHost).submit(report)
-    } catch (err) {
-      console.error(err.message)
-    }
+    } catch (err) {console.error(err.message)}
   })
 } catch (err) {
   console.error(err.message)
