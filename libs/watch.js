@@ -30,10 +30,12 @@ const httpWatcher = async ({ uri, responseField }) => {
 
 const pm2Watcher = async ({ identifier, uri, responseField }) => {
   try {
+    const totalMemory = os.totalmem()
     const instances = await pm2.describe(identifier)
+
     let result = instances.reduce((totalUsage, instance) => ({
         cpuUsage: totalUsage.cpuUsage + instance.monit.cpu,
-        memoryUsage: totalUsage.memoryUsage + Math.ceil(instance.monit.memory / os.totalmem() * 10000) / 100,
+        memoryUsage: totalUsage.memoryUsage + Math.ceil(instance.monit.memory / totalMemory * 10000) / 100,
       }), { cpuUsage: 0, memoryUsage: 0 }
     )
 
@@ -49,12 +51,12 @@ const pm2Watcher = async ({ identifier, uri, responseField }) => {
 
 const uwsgiWatcher = async ({ pid, uri, responseField }) => {
   try {
-    const ps = await psaux()
     const queryOptions = (pid == null) ? { command: '~uwsgi' } : { pid: pid }
+    const instances = (await psaux()).query(queryOptions)
 
-    let result = ps.query(queryOptions).reduce((totalUsage, instance) => ({
+    let result = instances.reduce((totalUsage, instance) => ({
         cpuUsage: totalUsage.cpuUsage + instance.cpu,
-        memoryUsage: totalUsage.memoryUsage + instance.mem
+        memoryUsage: totalUsage.memoryUsage + instance.mem,
       }), { cpuUsage: 0, memoryUsage: 0 }
     )
 

@@ -22,11 +22,11 @@ if (argv.file == null) {
 
 try {
   const targetFile = JSON.parse(fs.readFileSync(argv.file).toString())
-  Object.entries(targetFile.targets).forEach(async ([serviceName, serverInfo]) => {
+  Object.entries(targetFile.targets).map(async ([serviceName, serverInfo]) => {
     try {
       const report = await watch(serviceName, serverInfo)
       console.log(report)
-      await new Server(targetFile.monitorHost).submit(report)
+      return await new Server(targetFile.monitorHost).submit(report)
     } catch (err) {console.error(err.message)}
   })
 } catch (err) {
