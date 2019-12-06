@@ -30,7 +30,7 @@ const runCmd = async (argv) => {
   await Object.entries(description.targets || {}).asyncForEach(async ([serviceName, serviceInfo]) => {
     const report = await watch(serviceName, serviceInfo)
     logger.info(report)
-    return new Server(description.monitorHost).submit(report)
+    description.monitorHost != null && new Server(description.monitorHost).submit(report)
   })
 }
 
