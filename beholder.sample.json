@@ -1,18 +1,8 @@
 {
-    "monitorHost": "http://monitor.com",
-    "service01": {
-        "instanceType": "pm2"
-    },
-    "service02": {
-        "instanceType": "pm2",
-        "uri": "https://www.service02.com/health"
-    },
-    "service03": {
-        "instanceType": "uwsgi",
-        "uri": "https://service03.com/health"
-    },
-    "service04": {
-        "instanceType": "uwsgi",
-        "pid": 3843
+    "monitorHost": "http://localhost:3000",
+    "targets": {
+        "service01": {
+            "instanceType": "pm2"
+        }
     }
 }

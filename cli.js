@@ -1,10 +1,14 @@
 #! /usr/bin/env node
 
+require('./libs/monkey')
+
 const yargs = require('yargs')
-const fs = require('fs')
+const fs = require('fs').promises
 
 const watch = require('./libs/watch')
 const Server = require('./libs/server')
+
+const logger = console
 
 const argv = yargs
   .option('file', {
@@ -16,20 +20,21 @@ const argv = yargs
   .argv
 
 if (argv.file == null) {
-  console.error('ERROR: target file required')
+  logger.error('ERROR: target file required')
   process.exit(1)
 }
 
-try {
-  const targetFile = JSON.parse(fs.readFileSync(argv.file).toString())
-  Object.entries(targetFile.targets).forEach(async ([serviceName, serviceInfo]) => {
-    try {
-      const report = await watch(serviceName, serviceInfo)
-      console.log(report)
-      return await new Server(targetFile.monitorHost).submit(report)
-    } catch (err) { console.error(err.message) }
+const runCmd = async (argv) => {
+  const buffer = await fs.readFile(argv.file, { flag: 'r' })
+  const description = JSON.parse(buffer.toString())
+  await Object.entries(description.targets || {}).asyncForEach(async ([serviceName, serviceInfo]) => {
+    const report = await watch(serviceName, serviceInfo)
+    logger.info(report)
+    return new Server(description.monitorHost).submit(report)
   })
-} catch (err) {
-  console.error(err.message)
-  process.exit(1)
 }
+
+runCmd(argv).catch(err => {
+  logger.error(err.message)
+  process.exit(2)
+})

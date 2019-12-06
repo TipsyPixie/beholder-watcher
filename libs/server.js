@@ -1,7 +1,7 @@
 const { post } = require('request-promise-native')
 
 class Server {
-  constructor (uri, version=1) {
+  constructor (uri, version = 1) {
     this.uri = `${encodeURI(uri)}/api/v${version}`
   }
 
@@ -10,7 +10,10 @@ class Server {
       uri: `${encodeURI(this.uri)}/reports`,
       headers: { 'User-Agent': 'Beholder-Watcher' },
       body: report,
-      json: true
+      json: true,
+      timeout: 1000,
+      followRedirect: true,
+      maxRedirects: 10
     })
   }
 }

@@ -1,6 +1,6 @@
 {
     "name": "@tipsypixie/beholder-watcher",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "license": "Copyright (c) DXM corporation. All rights reserved.",
     "author": {
         "name": "Seongjae Hwang",
@@ -9,7 +9,6 @@
     "bin": {
         "beholder-watcher": "./cli.js"
     },
-    "main": "index.js",
     "scripts": {
         "format": "yarn lint",
         "lint": "standard",
@@ -32,7 +31,6 @@
         ]
     },
     "dependencies": {
-        "cron": "^1.7.2",
         "pm2": "^4.2.0",
         "psaux": "^0.4.0",
         "request": "^2.88.0",
@@ -43,9 +41,15 @@
         "husky": "^3.1.0",
         "lint-staged": "^9.4.3",
         "sort-package-json": "^1.23.1",
-        "standard": "^14.3.1"
+        "standard": "^14.3.1",
+        "why-is-node-running": "^2.1.0"
     },
     "publishConfig": {
         "registry": "https://npm.pkg.github.com/"
+    },
+    "standard": {
+        "ignore": [
+            "/libs/monkey.js"
+        ]
     }
 }
