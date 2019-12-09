@@ -6,7 +6,6 @@ const yargs = require('yargs')
 const fs = require('fs').promises
 
 const watch = require('./libs/watch')
-const Server = require('./libs/server')
 
 const logger = console
 
@@ -28,9 +27,8 @@ const runCmd = async (argv) => {
   const buffer = await fs.readFile(argv.file, { flag: 'r' })
   const description = JSON.parse(buffer.toString())
   await Object.entries(description.targets || {}).asyncForEach(async ([serviceName, serviceInfo]) => {
-    const report = await watch(serviceName, serviceInfo)
+    const report = await watch(serviceName, serviceInfo, description.monitorHost)
     logger.info(report)
-    description.monitorHost != null && new Server(description.monitorHost).submit(report)
   })
 }
 
