@@ -6,9 +6,9 @@ const pm2 = require('pm2')
 const logger = console
 const Server = require('./server')
 
-const httpWatcher = async ({ uri, responseField }) => {
+const httpWatcher = async ({ http, responseField }) => {
   const response = await get({
-    uri: encodeURI(uri),
+    uri: encodeURI(http),
     headers: { 'User-Agent': 'Beholder-Watcher' },
     json: true,
     timeout: 1000,
@@ -36,7 +36,7 @@ const httpWatcher = async ({ uri, responseField }) => {
   }
 }
 
-const pm2Watcher = async ({ uri: http, responseField }, serviceName, monitorHost) => {
+const pm2Watcher = async ({ http, responseField }, serviceName, monitorHost) => {
   try {
     const totalMemory = os.totalmem()
     await pm2.connect()
@@ -48,7 +48,7 @@ const pm2Watcher = async ({ uri: http, responseField }, serviceName, monitorHost
     }), { cpuUsage: 0, memoryUsage: 0 }
     )
     if (http != null) {
-      report = Object.assign(await httpWatcher({ uri: http, responseField }), report)
+      report = Object.assign(await httpWatcher({ http, responseField }), report)
     }
     report.serviceName = serviceName
 
@@ -69,7 +69,7 @@ const pm2Watcher = async ({ uri: http, responseField }, serviceName, monitorHost
   }
 }
 
-const uwsgiWatcher = async ({ pid, uri: http, responseField }, serviceName, monitorHost) => {
+const uwsgiWatcher = async ({ pid, http, responseField }, serviceName, monitorHost) => {
   try {
     const queryOptions = (pid == null) ? { command: '~uwsgi' } : { pid: pid }
     const instances = (await psaux()).query(queryOptions)
@@ -80,7 +80,7 @@ const uwsgiWatcher = async ({ pid, uri: http, responseField }, serviceName, moni
     }), { cpuUsage: 0, memoryUsage: 0 }
     )
     if (http != null) {
-      report = Object.assign(await httpWatcher({ uri: http, responseField }), report)
+      report = Object.assign(await httpWatcher({ http, responseField }), report)
     }
     report.serviceName = serviceName
 
