@@ -43,8 +43,8 @@ const pm2Watcher = async ({ uri: http, responseField }, serviceName, monitorHost
     const instances = await pm2.describe(serviceName)
 
     let report = instances.reduce((totalUsage, instance) => ({
-      cpuUsage: totalUsage.cpuUsage + instance.monit.cpu,
-      memoryUsage: totalUsage.memoryUsage + Math.ceil(instance.monit.memory / totalMemory * 10000) / 100
+      cpuUsage: totalUsage.cpuUsage + instance.monit.cpu / 100,
+      memoryUsage: totalUsage.memoryUsage + Math.ceil(instance.monit.memory / totalMemory * 10000) / 10000
     }), { cpuUsage: 0, memoryUsage: 0 }
     )
     if (http != null) {
@@ -75,8 +75,8 @@ const uwsgiWatcher = async ({ pid, uri: http, responseField }, serviceName, moni
     const instances = (await psaux()).query(queryOptions)
 
     let report = instances.reduce((totalUsage, instance) => ({
-      cpuUsage: totalUsage.cpuUsage + instance.cpu,
-      memoryUsage: totalUsage.memoryUsage + instance.mem
+      cpuUsage: totalUsage.cpuUsage + instance.cpu / 100,
+      memoryUsage: totalUsage.memoryUsage + instance.mem / 100
     }), { cpuUsage: 0, memoryUsage: 0 }
     )
     if (http != null) {
