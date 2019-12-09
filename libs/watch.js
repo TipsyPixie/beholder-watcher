@@ -7,14 +7,19 @@ const logger = console
 const Server = require('./server')
 
 const httpWatcher = async ({ http, responseField }) => {
-  const response = await get({
-    uri: encodeURI(http),
-    headers: { 'User-Agent': 'Beholder-Watcher' },
-    json: true,
-    timeout: 1000,
-    followRedirect: true,
-    maxRedirects: 10
-  })
+  let response = null
+  try {
+    response = await get({
+      uri: encodeURI(http),
+      headers: { 'User-Agent': 'Beholder-Watcher' },
+      json: true,
+      timeout: 10000,
+      followRedirect: true,
+      maxRedirects: 10
+    })
+  } catch (err) {
+    return { http: false }
+  }
 
   let result = {}
   if (typeof response === 'object') {
