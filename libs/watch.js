@@ -36,7 +36,7 @@ const httpWatcher = async ({ uri, responseField }) => {
   }
 }
 
-const pm2Watcher = async ({ uri, responseField }, serviceName, monitorHost) => {
+const pm2Watcher = async ({ uri: http, responseField }, serviceName, monitorHost) => {
   try {
     const totalMemory = os.totalmem()
     await pm2.connect()
@@ -47,8 +47,8 @@ const pm2Watcher = async ({ uri, responseField }, serviceName, monitorHost) => {
       memoryUsage: totalUsage.memoryUsage + Math.ceil(instance.monit.memory / totalMemory * 10000) / 100
     }), { cpuUsage: 0, memoryUsage: 0 }
     )
-    if (uri != null) {
-      report = Object.assign(await httpWatcher({ uri, responseField }), report)
+    if (http != null) {
+      report = Object.assign(await httpWatcher({ uri: http, responseField }), report)
     }
     report.serviceName = serviceName
 
@@ -69,7 +69,7 @@ const pm2Watcher = async ({ uri, responseField }, serviceName, monitorHost) => {
   }
 }
 
-const uwsgiWatcher = async ({ pid, uri, responseField }, serviceName, monitorHost) => {
+const uwsgiWatcher = async ({ pid, uri: http, responseField }, serviceName, monitorHost) => {
   try {
     const queryOptions = (pid == null) ? { command: '~uwsgi' } : { pid: pid }
     const instances = (await psaux()).query(queryOptions)
@@ -79,8 +79,8 @@ const uwsgiWatcher = async ({ pid, uri, responseField }, serviceName, monitorHos
       memoryUsage: totalUsage.memoryUsage + instance.mem
     }), { cpuUsage: 0, memoryUsage: 0 }
     )
-    if (uri != null) {
-      report = Object.assign(await httpWatcher({ uri, responseField }), report)
+    if (http != null) {
+      report = Object.assign(await httpWatcher({ uri: http, responseField }), report)
     }
     report.serviceName = serviceName
 

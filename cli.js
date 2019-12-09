@@ -27,8 +27,7 @@ const runCmd = async (argv) => {
   const buffer = await fs.readFile(argv.file, { flag: 'r' })
   const description = JSON.parse(buffer.toString())
   await Object.entries(description.targets || {}).asyncForEach(async ([serviceName, serviceInfo]) => {
-    const report = await watch(serviceName, serviceInfo, description.monitorHost)
-    logger.info(report)
+    logger.info(await watch(serviceName, serviceInfo, description.monitorHost))
   })
 }
 
