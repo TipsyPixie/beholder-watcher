@@ -1,11 +1,12 @@
 {
     "monitorHost": "http://localhost:3000",
     "targets": {
-        "service01": {
+        "test01": {
             "instanceType": "pm2"
         },
-        "service02": {
-            "instanceType": "pm2"
+        "test02": {
+            "instanceType": "uwsgi",
+            "http": "http://trinito.kr/v1/status"
         }
     }
 }

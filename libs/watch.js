@@ -14,7 +14,7 @@ const httpWatcher = async ({ http, responseField }) => {
       uri: encodeURI(http),
       headers: { 'User-Agent': 'Beholder-Watcher' },
       json: true,
-      timeout: 5000,
+      timeout: 10000,
       followRedirect: true,
       maxRedirects: 10
     })
