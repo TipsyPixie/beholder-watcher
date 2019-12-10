@@ -11,7 +11,7 @@ class Server {
       headers: { 'User-Agent': 'Beholder-Watcher' },
       body: report,
       json: true,
-      timeout: 10000,
+      timeout: 5000,
       followRedirect: true,
       maxRedirects: 10
     })

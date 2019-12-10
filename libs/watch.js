@@ -14,7 +14,7 @@ const httpWatcher = async ({ http, responseField }) => {
       uri: encodeURI(http),
       headers: { 'User-Agent': 'Beholder-Watcher' },
       json: true,
-      timeout: 10000,
+      timeout: 5000,
       followRedirect: true,
       maxRedirects: 10
     })
@@ -48,7 +48,7 @@ const pm2Watcher = async ({ http, responseField }, serviceName, monitorHost) => 
     const instances = await pm2.describe(serviceName)
 
     let report = instances.reduce((totalUsage, instance) => ({
-      cpuUsage: totalUsage.cpuUsage + ceil(instance.monit.cpu),
+      cpuUsage: totalUsage.cpuUsage + ceil(instance.monit.cpu / 100),
       memoryUsage: totalUsage.memoryUsage + ceil(instance.monit.memory / totalMemory)
     }), { cpuUsage: 0, memoryUsage: 0 }
     )
@@ -95,7 +95,8 @@ const uwsgiWatcher = async ({ pid, http, responseField }, serviceName, monitorHo
 
     if (monitorHost != null) {
       subtitle('submitting...')
-      await new Server(monitorHost).submit(report)
+      const response = await new Server(monitorHost).submit(report)
+      logger.info(response)
       // if (response.callbacks != null) {
       //   response.callbacks.asyncForEach(async callback => {
       //   })
