@@ -3,6 +3,9 @@
     "targets": {
         "service01": {
             "instanceType": "pm2"
+        },
+        "service02": {
+            "instanceType": "pm2"
         }
     }
 }
