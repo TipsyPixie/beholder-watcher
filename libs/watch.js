@@ -42,7 +42,7 @@ const httpWatcher = async ({ http, responseField }) => {
   }
 }
 
-const pm2Watcher = async ({ http, responseField }, serviceName, monitorHost) => {
+const pm2Watcher = async ({ http, responseField, serviceId }, serviceName, monitorHost) => {
   try {
     const totalMemory = os.totalmem()
     const instances = await pm2.describe(serviceName)
@@ -56,6 +56,7 @@ const pm2Watcher = async ({ http, responseField }, serviceName, monitorHost) => 
       report = Object.assign(await httpWatcher({ http, responseField }), report)
     }
     report.serviceName = serviceName
+    if (serviceId != null) { report.serviceId = serviceId }
     logger.info(report)
 
     if (monitorHost != null) {
@@ -77,7 +78,7 @@ const pm2Watcher = async ({ http, responseField }, serviceName, monitorHost) => 
   }
 }
 
-const uwsgiWatcher = async ({ pid, http, responseField }, serviceName, monitorHost) => {
+const uwsgiWatcher = async ({ pid, http, responseField, serviceId }, serviceName, monitorHost) => {
   try {
     const queryOptions = (pid == null) ? { command: '~uwsgi' } : { pid: pid }
     const instances = (await psaux()).query(queryOptions)
@@ -91,6 +92,7 @@ const uwsgiWatcher = async ({ pid, http, responseField }, serviceName, monitorHo
       report = Object.assign(await httpWatcher({ http, responseField }), report)
     }
     report.serviceName = serviceName
+    if (serviceId != null) { report.serviceId = serviceId }
     logger.info(report)
 
     if (monitorHost != null) {
