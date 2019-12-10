@@ -65,8 +65,7 @@ const pm2Watcher = async ({ http, responseField }, serviceName, monitorHost) => 
       if (response.callbacks != null) {
         response.callbacks.asyncForEach(async callback => {
           if (callback === 'restart') {
-            await pm2.restart(serviceName).catch(err => { logger.error(err.message) })
-            logger.info('restarted')
+            await pm2.restart(serviceName).catch(err => { logger.error(err.message) }).then(() => logger.info('restarted'))
           }
         })
       }
