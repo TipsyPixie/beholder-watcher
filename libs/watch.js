@@ -1,13 +1,13 @@
 const os = require('os')
-const { get } = require('./utils')
 const psaux = require('psaux')
 const pm2 = require('pm2')
 
 const logger = console
+const { get, callRpc } = require('./utils')
 const Server = require('./server')
 const { round, subtitle } = require('./utils')
 
-const httpWatcher = async ({ http, responseField }) => {
+const httpCollector = async ({ http, responseField }) => {
   let response = null
   try {
     response = await get({ uri: encodeURI(http) })
@@ -35,19 +35,37 @@ const httpWatcher = async ({ http, responseField }) => {
   }
 }
 
-const pm2Watcher = async ({ http, responseField, serviceId }, serviceName, monitorHost) => {
+const rpcCollector = async ({ rpc }) => {
+  let response = null
+  try {
+    response = await callRpc({ ...rpc, uri: encodeURI(rpc.uri) })
+  } catch (err) {
+    return { rpc: false }
+  }
+
+  return {
+    rpc: true,
+    ...response
+  }
+}
+
+const pm2Watcher = async ({ http, responseField, serviceId, rpc }, serviceName, monitorHost) => {
   try {
     const totalMemory = os.totalmem()
     const instances = await pm2.describe(serviceName)
 
-    let report = instances.reduce((totalUsage, instance) => ({
+    const report = instances.reduce((totalUsage, instance) => ({
       cpuUsage: totalUsage.cpuUsage + round(instance.monit.cpu / 100),
       memoryUsage: totalUsage.memoryUsage + round(instance.monit.memory / totalMemory)
     }), { cpuUsage: 0, memoryUsage: 0 }
     )
     if (http != null) {
-      report = Object.assign(await httpWatcher({ http, responseField }), report)
+      Object.assign(report, await httpCollector({ http: http, responseField: responseField }))
     }
+    if (rpc != null) {
+      Object.assign(report, await rpcCollector({ rpc: rpc }))
+    }
+
     report.serviceName = serviceName
     if (serviceId != null) { report.serviceId = serviceId }
     logger.info(report)
@@ -57,7 +75,7 @@ const pm2Watcher = async ({ http, responseField, serviceId }, serviceName, monit
       const response = await new Server(monitorHost).submit(report)
       logger.info(response)
       if (response.callbacks != null) {
-        response.callbacks.asyncForEach(async callback => {
+        await response.callbacks.asyncForEach(async callback => {
           if (callback === 'restart') {
             await pm2.restart(serviceName).catch(err => { logger.error(err.message) }).then(() => logger.info('restarted'))
           }
@@ -71,19 +89,23 @@ const pm2Watcher = async ({ http, responseField, serviceId }, serviceName, monit
   }
 }
 
-const uwsgiWatcher = async ({ pid, http, responseField, serviceId }, serviceName, monitorHost) => {
+const commonWatcher = async ({ http, responseField, serviceId, rpc, instanceType }, serviceName, monitorHost) => {
   try {
-    const queryOptions = (pid == null) ? { command: '~uwsgi' } : { pid: pid }
-    const instances = (await psaux()).query(queryOptions)
+    const instances = (await psaux()).query({ command: `~${instanceType}` })
 
-    let report = instances.reduce((totalUsage, instance) => ({
+    const report = instances.reduce((totalUsage, instance) => ({
       cpuUsage: totalUsage.cpuUsage + round(instance.cpu / 100),
       memoryUsage: totalUsage.memoryUsage + round(instance.mem / 100)
     }), { cpuUsage: 0, memoryUsage: 0 }
     )
+
     if (http != null) {
-      report = Object.assign(await httpWatcher({ http, responseField }), report)
+      Object.assign(report, await httpCollector({ http: http, responseField: responseField }))
     }
+    if (rpc != null) {
+      Object.assign(report, await rpcCollector({ rpc: rpc }))
+    }
+
     report.serviceName = serviceName
     if (serviceId != null) { report.serviceId = serviceId }
     logger.info(report)
@@ -92,9 +114,16 @@ const uwsgiWatcher = async ({ pid, http, responseField, serviceId }, serviceName
       subtitle('submitting...')
       const response = await new Server(monitorHost).submit(report)
       logger.info(response)
+      /**
+       * not sure how to handle restart here...
+       **/
       // if (response.callbacks != null) {
-      //   response.callbacks.asyncForEach(async callback => {
+      //   await response.callbacks.asyncForEach(async callback => {
+      //     if (callback === 'restart' && restart != null) {
+      //       await promisify(child_process.spawn())
+      //     }
       //   })
+      // }
     }
     return report
   } catch (err) {
@@ -104,31 +133,19 @@ const uwsgiWatcher = async ({ pid, http, responseField, serviceId }, serviceName
 }
 
 const watcher = (instanceType) => {
-  switch (instanceType) {
-    case 'uwsgi':
-      return uwsgiWatcher
-    case 'http':
-      return pm2Watcher
-    case 'pm2':
-      return pm2Watcher
-    default:
-      throw Error(`instance type ${instanceType} not supported`)
+  if (instanceType === 'pm2') {
+    return pm2Watcher
+  } else {
+    return commonWatcher
   }
 }
 
-const watch = async (serviceName, serverInfo, host) => {
+const watch = async (serviceName, serverInfo, monitorHost) => {
   subtitle('collecting...')
   if (serverInfo.instanceType == null) {
     throw Error('instanceType required')
   }
-  const result = {
-    serviceName: serviceName,
-    ...await watcher(serverInfo.instanceType.trim().toLowerCase())(serverInfo, serviceName, host)
-  }
-  if (Object.keys(result).length === 0) {
-    throw Error(`${serviceName} got nothing to report`)
-  }
-  return result
+  return watcher(serverInfo.instanceType.trim().toLowerCase())(serverInfo, serviceName, monitorHost)
 }
 
 module.exports = watch

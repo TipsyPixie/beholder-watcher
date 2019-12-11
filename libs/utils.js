@@ -33,21 +33,25 @@ const defaultRequestOptions = {
   retry: 3
 }
 
-// const rpc = async ({ method, params, jsonrpc, id, ...options }) => (await beholderPost({
-//   ...options,
-//   body: {
-//     jsonrpc: jsonrpc || '2.0',
-//     method: method,
-//     params: params || [],
-//     id: id || 1
-//   }
-// })).result
+const beholderGet = async (options) => retryingRequest(get, { ...defaultRequestOptions, ...options })
+
+const beholderPost = async (options) => retryingRequest(post, { ...defaultRequestOptions, ...options })
+
+const callRpc = async ({ method, params, jsonrpc, id, ...options }) => (await beholderPost({
+  ...options,
+  body: {
+    jsonrpc: jsonrpc || '2.0',
+    method: method,
+    params: params || [],
+    id: id || 1
+  }
+})).result
 
 module.exports = {
   round: (value, precision = 4) => Math.round(value * Math.pow(10, precision)) / Math.pow(10, precision),
   title: (message) => { logger.info(`------------------------------ ${message} ------------------------------`) },
   subtitle: (message) => { logger.info(`* ${message}`) },
-  get: async (options) => retryingRequest(get, { ...defaultRequestOptions, ...options }),
-  post: async (options) => retryingRequest(post, { ...defaultRequestOptions, ...options })
-  // rpc: rpc
+  get: beholderGet,
+  post: beholderPost,
+  callRpc: callRpc
 }

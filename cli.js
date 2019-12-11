@@ -32,7 +32,7 @@ const runCmd = async (argv) => {
   await Object.entries(description.targets || {}).asyncForEach(async ([serviceName, serviceInfo]) => {
     title(serviceName)
     if (serviceInfo.instanceType === 'pm2') { pm2Connected = true }
-    await watch(serviceName, serviceInfo, description.monitorHost)
+    await watch(serviceName, serviceInfo, description.monitorHost).catch(err => { logger.error(err) })
   })
 
   if (pm2Connected) {
