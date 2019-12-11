@@ -1,4 +1,4 @@
-const { post } = require('request-promise-native')
+const { post } = require('./utils')
 
 class Server {
   constructor (uri, version = 1) {
@@ -8,12 +8,7 @@ class Server {
   async submit (report) {
     return post({
       uri: `${encodeURI(this.uri)}/reports`,
-      headers: { 'User-Agent': 'Beholder-Watcher' },
-      body: report,
-      json: true,
-      timeout: 10000,
-      followRedirect: true,
-      maxRedirects: 10
+      body: report
     })
   }
 }

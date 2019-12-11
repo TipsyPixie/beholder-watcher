@@ -1,6 +1,6 @@
 {
     "name": "@tipsypixie/beholder-watcher",
-    "version": "1.0.16",
+    "version": "1.1.0",
     "license": "Copyright (c) DXM corporation. All rights reserved.",
     "author": {
         "name": "Seongjae Hwang",
@@ -33,7 +33,7 @@
     "dependencies": {
         "pm2": "^4.2.0",
         "psaux": "^0.4.0",
-        "request": "^2.88.0",
+        "request": "^2.34",
         "request-promise-native": "^1.0.8",
         "yargs": "^15.0.2"
     },

@@ -1,23 +1,16 @@
 const os = require('os')
-const { get } = require('request-promise-native')
+const { get } = require('./utils')
 const psaux = require('psaux')
 const pm2 = require('pm2')
 
 const logger = console
 const Server = require('./server')
-const { ceil, subtitle } = require('./utils')
+const { round, subtitle } = require('./utils')
 
 const httpWatcher = async ({ http, responseField }) => {
   let response = null
   try {
-    response = await get({
-      uri: encodeURI(http),
-      headers: { 'User-Agent': 'Beholder-Watcher' },
-      json: true,
-      timeout: 10000,
-      followRedirect: true,
-      maxRedirects: 10
-    })
+    response = await get({ uri: encodeURI(http) })
   } catch (err) {
     return { http: false }
   }
@@ -48,8 +41,8 @@ const pm2Watcher = async ({ http, responseField, serviceId }, serviceName, monit
     const instances = await pm2.describe(serviceName)
 
     let report = instances.reduce((totalUsage, instance) => ({
-      cpuUsage: totalUsage.cpuUsage + ceil(instance.monit.cpu / 100),
-      memoryUsage: totalUsage.memoryUsage + ceil(instance.monit.memory / totalMemory)
+      cpuUsage: totalUsage.cpuUsage + round(instance.monit.cpu / 100),
+      memoryUsage: totalUsage.memoryUsage + round(instance.monit.memory / totalMemory)
     }), { cpuUsage: 0, memoryUsage: 0 }
     )
     if (http != null) {
@@ -84,8 +77,8 @@ const uwsgiWatcher = async ({ pid, http, responseField, serviceId }, serviceName
     const instances = (await psaux()).query(queryOptions)
 
     let report = instances.reduce((totalUsage, instance) => ({
-      cpuUsage: totalUsage.cpuUsage + ceil(instance.cpu / 100),
-      memoryUsage: totalUsage.memoryUsage + ceil(instance.mem / 100)
+      cpuUsage: totalUsage.cpuUsage + round(instance.cpu / 100),
+      memoryUsage: totalUsage.memoryUsage + round(instance.mem / 100)
     }), { cpuUsage: 0, memoryUsage: 0 }
     )
     if (http != null) {
