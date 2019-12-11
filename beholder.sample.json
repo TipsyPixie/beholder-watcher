@@ -6,7 +6,9 @@
         },
         "test02": {
             "instanceType": "uwsgi",
-            "http": "http://trinito.kr/v1/status"
+            "http": {
+                "uri": "http://trinito.kr/v1/status"
+            }
         }
     }
 }
