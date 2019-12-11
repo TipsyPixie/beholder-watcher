@@ -10,7 +10,7 @@ const { round, subtitle } = require('./utils')
 const httpCollector = async ({ http, responseField }) => {
   let response = null
   try {
-    response = await get({ uri: encodeURI(http) })
+    response = await get({ ...http, uri: encodeURI(http) })
   } catch (err) {
     return { http: false }
   }
