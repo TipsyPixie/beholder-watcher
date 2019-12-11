@@ -43,7 +43,7 @@ const rpcCollector = async ({ rpc, extraHandler }) => {
   if (rpc.method === 'eth_blockNumber') {
     response = { blockNumber: parseInt(response, 16) }
   }
-  return (typeof response === 'object') ? { http: true, ...response } : { http: true }
+  return (typeof response === 'object') ? { rpc: true, ...response } : { rpc: true }
 }
 
 const pm2Watcher = async ({ http, responseField, serviceId, rpc }, serviceName, monitorHost) => {
