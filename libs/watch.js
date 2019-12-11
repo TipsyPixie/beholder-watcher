@@ -29,13 +29,10 @@ const httpCollector = async ({ http, responseField }) => {
     }
   }
 
-  return {
-    http: true,
-    ...result
-  }
+  return (typeof result === 'object') ? { http: true, ...result } : { http: true }
 }
 
-const rpcCollector = async ({ rpc }) => {
+const rpcCollector = async ({ rpc, extraHandler }) => {
   let response = null
   try {
     response = await callRpc({ ...rpc, uri: encodeURI(rpc.uri) })
@@ -43,10 +40,10 @@ const rpcCollector = async ({ rpc }) => {
     return { rpc: false }
   }
 
-  return {
-    rpc: true,
-    ...response
+  if (rpc.method === 'eth_blockNumber') {
+    response = { blockNumber: parseInt(response, 16) }
   }
+  return (typeof response === 'object') ? { http: true, ...response } : { http: true }
 }
 
 const pm2Watcher = async ({ http, responseField, serviceId, rpc }, serviceName, monitorHost) => {
@@ -59,6 +56,7 @@ const pm2Watcher = async ({ http, responseField, serviceId, rpc }, serviceName, 
       memoryUsage: totalUsage.memoryUsage + round(instance.monit.memory / totalMemory)
     }), { cpuUsage: 0, memoryUsage: 0 }
     )
+
     if (http != null) {
       Object.assign(report, await httpCollector({ http: http, responseField: responseField }))
     }
