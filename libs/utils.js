@@ -7,9 +7,10 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 const retryingRequest = async (method, options) => {
   const maxRetry = (options.retry > 0) ? options.retry : 0
   const delayFactor = (options.delayFactor > 0) ? options.delayFactor : 2
+  const initialDelay = (options.delay > 0) ? options.delay : 100
 
   let retryCount = 0
-  let delay = options.delay || 100
+  let delay = initialDelay
   while (true) {
     try {
       return await method(options)
@@ -47,11 +48,18 @@ const callRpc = async ({ method, params, jsonrpc, id, ...options }) => (await be
   }
 })).result
 
+const asyncForEach = async function (array, fn) {
+  for (let index = 0; index < array.length; index++) {
+    await fn(array[index], index, array)
+  }
+}
+
 module.exports = {
   round: (value, precision = 4) => Math.round(value * Math.pow(10, precision)) / Math.pow(10, precision),
   title: (message) => { logger.info(`------------------------------ ${message} ------------------------------`) },
   subtitle: (message) => { logger.info(`* ${message}`) },
   get: beholderGet,
   post: beholderPost,
-  callRpc: callRpc
+  callRpc: callRpc,
+  asyncForEach: asyncForEach
 }

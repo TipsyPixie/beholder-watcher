@@ -1,13 +1,13 @@
 {
     "name": "@tipsypixie/beholder-watcher",
-    "version": "1.1.5",
+    "version": "1.1.6",
     "license": "Copyright (c) DXM corporation. All rights reserved.",
     "author": {
         "name": "Seongjae Hwang",
         "email": "s.hwang@dxmcorp.com"
     },
     "bin": {
-        "beholder-watcher": "./cli.js"
+        "beholder-watcher": "bin/cli.js"
     },
     "scripts": {
         "format": "yarn lint",
@@ -46,10 +46,5 @@
     },
     "publishConfig": {
         "registry": "https://npm.pkg.github.com/"
-    },
-    "standard": {
-        "ignore": [
-            "/libs/monkey.js"
-        ]
     }
 }

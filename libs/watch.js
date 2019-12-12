@@ -1,11 +1,11 @@
 const os = require('os')
 const psaux = require('psaux')
-const pm2 = require('pm2')
+const pm2 = require('./pm2wrapper')
 
 const logger = console
 const { get, callRpc } = require('./utils')
 const Server = require('./server')
-const { round, subtitle } = require('./utils')
+const { round, subtitle, asyncForEach } = require('./utils')
 
 const httpCollector = async ({ http, responseField }) => {
   let response = null
@@ -32,7 +32,7 @@ const httpCollector = async ({ http, responseField }) => {
   return (typeof result === 'object') ? { http: true, ...result } : { http: true }
 }
 
-const rpcCollector = async ({ rpc, extraHandler }) => {
+const rpcCollector = async ({ rpc }) => {
   let response = null
   try {
     response = await callRpc({ ...rpc, uri: encodeURI(rpc.uri) })
@@ -73,7 +73,7 @@ const pm2Watcher = async ({ http, responseField, serviceId, rpc }, serviceName, 
       const response = await new Server(monitorHost).submit(report)
       logger.info(response)
       if (response.callbacks != null) {
-        await response.callbacks.asyncForEach(async callback => {
+        await asyncForEach(response.callbacks, async callback => {
           if (callback === 'restart') {
             await pm2.restart(serviceName).catch(err => { logger.error(err.message) }).then(() => logger.info('restarted'))
           }
