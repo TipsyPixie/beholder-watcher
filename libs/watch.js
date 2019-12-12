@@ -47,87 +47,83 @@ const rpcCollector = async ({ rpc }) => {
 }
 
 const pm2Watcher = async ({ http, responseField, serviceId, rpc }, serviceName, monitorHost) => {
-  try {
-    const totalMemory = os.totalmem()
-    const instances = await pm2.describe(serviceName)
-
-    const report = instances.reduce((totalUsage, instance) => ({
-      cpuUsage: totalUsage.cpuUsage + round(instance.monit.cpu / 100),
-      memoryUsage: totalUsage.memoryUsage + round(instance.monit.memory / totalMemory)
-    }), { cpuUsage: 0, memoryUsage: 0 }
-    )
-
-    if (http != null) {
-      Object.assign(report, await httpCollector({ http: http, responseField: responseField }))
-    }
-    if (rpc != null) {
-      Object.assign(report, await rpcCollector({ rpc: rpc }))
-    }
-
-    report.serviceName = serviceName
-    if (serviceId != null) { report.serviceId = serviceId }
-    logger.info(report)
-
-    if (monitorHost != null) {
-      subtitle('submitting...')
-      const response = await new Server(monitorHost).submit(report)
-      logger.info(response)
-      if (response.callbacks != null) {
-        await asyncForEach(response.callbacks, async callback => {
-          if (callback === 'restart') {
-            await pm2.restart(serviceName).catch(err => { logger.error(err.message) }).then(() => logger.info('restarted'))
-          }
-        })
-      }
-    }
-    return report
-  } catch (err) {
-    logger.error(err.message)
-    return {}
+  const totalMemory = os.totalmem()
+  const instances = await pm2.describe(serviceName)
+  if (instances.length === 0) {
+    throw Error('InstanceNotFound')
   }
+
+  const report = instances.reduce((totalUsage, instance) => ({
+    cpuUsage: totalUsage.cpuUsage + round(instance.monit.cpu / 100),
+    memoryUsage: totalUsage.memoryUsage + round(instance.monit.memory / totalMemory)
+  }), { cpuUsage: 0, memoryUsage: 0 }
+  )
+
+  if (http != null) {
+    Object.assign(report, await httpCollector({ http: http, responseField: responseField }))
+  }
+  if (rpc != null) {
+    Object.assign(report, await rpcCollector({ rpc: rpc }))
+  }
+
+  report.serviceName = serviceName
+  if (serviceId != null) { report.serviceId = serviceId }
+  logger.info(report)
+
+  if (monitorHost != null) {
+    subtitle('submitting...')
+    const response = await new Server(monitorHost).submit(report)
+    logger.info(response)
+    if (response.callbacks != null) {
+      await asyncForEach(response.callbacks, async callback => {
+        if (callback === 'restart') {
+          await pm2.restart(serviceName).catch(err => { logger.error(err.message) }).then(() => logger.info('restarted'))
+        }
+      })
+    }
+  }
+  return report
 }
 
 const commonWatcher = async ({ http, responseField, serviceId, rpc, instanceType }, serviceName, monitorHost) => {
-  try {
-    const instances = (await psaux()).query({ command: `~${instanceType}` })
-
-    const report = instances.reduce((totalUsage, instance) => ({
-      cpuUsage: totalUsage.cpuUsage + round(instance.cpu / 100),
-      memoryUsage: totalUsage.memoryUsage + round(instance.mem / 100)
-    }), { cpuUsage: 0, memoryUsage: 0 }
-    )
-
-    if (http != null) {
-      Object.assign(report, await httpCollector({ http: http, responseField: responseField }))
-    }
-    if (rpc != null) {
-      Object.assign(report, await rpcCollector({ rpc: rpc }))
-    }
-
-    report.serviceName = serviceName
-    if (serviceId != null) { report.serviceId = serviceId }
-    logger.info(report)
-
-    if (monitorHost != null) {
-      subtitle('submitting...')
-      const response = await new Server(monitorHost).submit(report)
-      logger.info(response)
-      /**
-       * not sure how to handle restart here...
-       **/
-      // if (response.callbacks != null) {
-      //   await response.callbacks.asyncForEach(async callback => {
-      //     if (callback === 'restart' && restart != null) {
-      //       await promisify(child_process.spawn())
-      //     }
-      //   })
-      // }
-    }
-    return report
-  } catch (err) {
-    logger.error(err.message)
-    return {}
+  const instances = (await psaux()).query({ command: `~${instanceType}` })
+  if (instances.length === 0) {
+    throw Error('InstanceNotFound')
   }
+
+  const report = instances.reduce((totalUsage, instance) => ({
+    cpuUsage: totalUsage.cpuUsage + round(instance.cpu / 100),
+    memoryUsage: totalUsage.memoryUsage + round(instance.mem / 100)
+  }), { cpuUsage: 0, memoryUsage: 0 }
+  )
+
+  if (http != null) {
+    Object.assign(report, await httpCollector({ http: http, responseField: responseField }))
+  }
+  if (rpc != null) {
+    Object.assign(report, await rpcCollector({ rpc: rpc }))
+  }
+
+  report.serviceName = serviceName
+  if (serviceId != null) { report.serviceId = serviceId }
+  logger.info(report)
+
+  if (monitorHost != null) {
+    subtitle('submitting...')
+    const response = await new Server(monitorHost).submit(report)
+    logger.info(response)
+    /**
+     * not sure how to handle restart here...
+     **/
+    // if (response.callbacks != null) {
+    //   await response.callbacks.asyncForEach(async callback => {
+    //     if (callback === 'restart' && restart != null) {
+    //       await promisify(child_process.spawn())
+    //     }
+    //   })
+    // }
+  }
+  return report
 }
 
 const watcher = (instanceType) => {
