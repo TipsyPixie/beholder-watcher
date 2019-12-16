@@ -3,7 +3,7 @@ const psaux = require('psaux')
 const pm2 = require('./pm2wrapper')
 
 const logger = console
-const { get, callRpc } = require('./utils')
+const { get, requestRpc } = require('./utils')
 const Server = require('./server')
 const { round, subtitle, asyncForEach } = require('./utils')
 
@@ -35,22 +35,21 @@ const httpCollector = async ({ http, responseField }) => {
 const rpcCollector = async ({ rpc }) => {
   let response = null
   try {
-    response = await callRpc({ ...rpc, uri: encodeURI(rpc.uri) })
+    response = await requestRpc({ ...rpc, uri: encodeURI(rpc.uri) })
   } catch (err) {
     return { rpc: false }
   }
 
   const result = (typeof response === 'object') ? { rpc: true, ...response } : { rpc: true }
-  if (typeof rpc.blockNumber === 'string') {
-    switch (rpc.blockNumber) {
+  if (typeof rpc.chain === 'string') {
+    result.blockNumber = {}
+    switch (rpc.chain) {
       case 'ethereum':
       case 'orbit':
-        result.blockNumber = {}
-        result.blockNumber[rpc.blockNumber] = [parseInt(response, 16)]
+        result.blockNumber[rpc.chain] = [parseInt(response, 16)]
         break
       default:
-        result.blockNumber = {}
-        result.blockNumber[rpc.blockNumber] = [response]
+        result.blockNumber[rpc.chain] = [response]
         break
     }
   }

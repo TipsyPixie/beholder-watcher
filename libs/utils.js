@@ -38,7 +38,7 @@ const beholderGet = async (options) => retryingRequest(get, { ...defaultRequestO
 
 const beholderPost = async (options) => retryingRequest(post, { ...defaultRequestOptions, ...options })
 
-const callRpc = async ({ method, params, jsonrpc, id, ...options }) => (await beholderPost({
+const requestRpc = async ({ method, params, jsonrpc, id, ...options }) => (await beholderPost({
   ...options,
   body: {
     jsonrpc: jsonrpc || '2.0',
@@ -60,6 +60,6 @@ module.exports = {
   subtitle: (message) => { logger.info(`* ${message}`) },
   get: beholderGet,
   post: beholderPost,
-  callRpc: callRpc,
+  requestRpc: requestRpc,
   asyncForEach: asyncForEach
 }
