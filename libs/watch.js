@@ -44,6 +44,7 @@ const rpcCollector = async ({ rpc }) => {
   if (typeof rpc.blockNumber === 'string') {
     switch (rpc.blockNumber) {
       case 'ethereum':
+      case 'orbit':
         result.blockNumber = {}
         result.blockNumber[rpc.blockNumber] = [parseInt(response, 16)]
         break
