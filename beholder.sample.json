@@ -1,13 +1,10 @@
 {
     "monitorHost": "http://localhost:3000",
     "targets": {
-        "test01": {
-            "instanceType": "pm2"
-        },
         "test02": {
             "instanceType": "uwsgi",
-            "http": {
-                "uri": "http://trinito.kr/v1/status"
+            "rpc": {
+                "uri": "http://trinito.kr/v1/status",
             }
         }
     }
