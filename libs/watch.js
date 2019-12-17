@@ -1,11 +1,11 @@
 const os = require('os')
 const psaux = require('psaux')
-const pm2 = require('./pm2wrapper')
 
-const logger = console
+const pm2 = require('./pm2wrapper')
 const { get, requestRpc } = require('./utils')
 const Server = require('./server')
 const { round, subtitle, asyncForEach } = require('./utils')
+const logger = console
 
 const httpCollector = async ({ http, responseField }) => {
   let response = null
@@ -64,10 +64,11 @@ const pm2Watcher = async ({ http, responseField, serviceId, rpc }, serviceName, 
   }
 
   const report = instances.reduce((totalUsage, instance) => ({
-    cpuUsage: totalUsage.cpuUsage + round(instance.monit.cpu / 100),
-    memoryUsage: totalUsage.memoryUsage + round(instance.monit.memory / totalMemory)
-  }), { cpuUsage: 0, memoryUsage: 0 }
-  )
+    cpuUsage: totalUsage.cpuUsage + instance.monit.cpu / 100,
+    memoryUsage: totalUsage.memoryUsage + instance.monit.memory / totalMemory
+  }), { cpuUsage: 0, memoryUsage: 0 })
+  report.cpuUsage = round(report.cpuUsage)
+  report.memoryUsage = round(report.memoryUsage)
 
   if (http != null) {
     Object.assign(report, await httpCollector({ http: http, responseField: responseField }))
@@ -102,10 +103,11 @@ const commonWatcher = async ({ http, responseField, serviceId, rpc, instanceType
   }
 
   const report = instances.reduce((totalUsage, instance) => ({
-    cpuUsage: totalUsage.cpuUsage + round(instance.cpu / 100),
-    memoryUsage: totalUsage.memoryUsage + round(instance.mem / 100)
-  }), { cpuUsage: 0, memoryUsage: 0 }
-  )
+    cpuUsage: totalUsage.cpuUsage + instance.cpu / 100,
+    memoryUsage: totalUsage.memoryUsage + instance.mem / 100
+  }), { cpuUsage: 0, memoryUsage: 0 })
+  report.cpuUsage = round(report.cpuUsage)
+  report.memoryUsage = round(report.memoryUsage)
 
   if (http != null) {
     Object.assign(report, await httpCollector({ http: http, responseField: responseField }))
@@ -147,7 +149,7 @@ const watcher = (instanceType) => {
 const watch = async (serviceName, serverInfo, monitorHost) => {
   subtitle('collecting...')
   if (serverInfo.instanceType == null) {
-    throw Error('instanceType required')
+    throw Error('InstanceTypeRequired')
   }
   return watcher(serverInfo.instanceType.trim().toLowerCase())(serverInfo, serviceName, monitorHost)
 }

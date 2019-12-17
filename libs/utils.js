@@ -55,7 +55,7 @@ const asyncForEach = async function (array, fn) {
 }
 
 module.exports = {
-  round: (value, precision = 4) => Math.round(value * Math.pow(10, precision)) / Math.pow(10, precision),
+  round: (value, precision = 4) => parseFloat(value.toPrecision(precision)),
   title: (message) => { logger.info(`------------------------------ ${message} ------------------------------`) },
   subtitle: (message) => { logger.info(`* ${message}`) },
   get: beholderGet,
