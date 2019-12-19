@@ -4,7 +4,7 @@ const psaux = require('psaux')
 const pm2 = require('./pm2wrapper')
 const { get, requestRpc } = require('./utils')
 const Server = require('./server')
-const { round, subtitle, asyncForEach } = require('./utils')
+const { round, subtitle, asyncForEach, post } = require('./utils')
 const logger = console
 
 const httpCollector = async ({ http, responseField }) => {
@@ -56,7 +56,7 @@ const rpcCollector = async ({ rpc }) => {
   return result
 }
 
-const pm2Watcher = async ({ http, responseField, serviceId, rpc }, serviceName, monitorHost) => {
+const pm2Watcher = async ({ http, responseField, serviceId, rpc, makeSupportWallet }, serviceName, monitorHost) => {
   const totalMemory = os.totalmem()
   const instances = await pm2.describe(serviceName)
   if (instances.length === 0) {
@@ -87,8 +87,15 @@ const pm2Watcher = async ({ http, responseField, serviceId, rpc }, serviceName, 
     logger.info(response)
     if (response.callbacks != null) {
       await asyncForEach(response.callbacks, async callback => {
-        if (callback === 'restart') {
-          await pm2.restart(serviceName).catch(err => { logger.error(err.message) }).then(() => logger.info('restarted'))
+        switch (callback) {
+          case 'restart':
+            await pm2.restart(serviceName).catch(err => { logger.error(err.message) })
+            logger.info('restarted')
+            break
+          case 'makeSupportWallet':
+            await post({ uri: makeSupportWallet, body: { count: 10 } })
+            logger.info('madeSupportWallet')
+            break
         }
       })
     }
