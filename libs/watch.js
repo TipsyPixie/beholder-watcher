@@ -67,12 +67,15 @@ const diskCollector = async () => {
     disk: Object.fromEntries(
       diskUsages.map(usage => usage.split(/\s+/))
         .filter(([filesystem]) => hardDiskFilesystemPattern.test(filesystem))
-        .map(([filesystem, size, used, avail, usedPercent]) => [filesystem, {
-          size: size,
-          used: used,
-          avail: avail,
-          usedPercent: parseInt(usedPercent.replace('%', '')).isNaN() ? 0.0 : round(parseInt(usedPercent.replace('%', '')) / 100)
-        }])
+        .map(([filesystem, size, used, avail, usedPercent]) => {
+          const parsedPercent = (usedPercent != null) ? parseInt(usedPercent.replace('%', '')) : 0.0
+          return [filesystem, {
+            size: size,
+            used: used,
+            avail: avail,
+            usedPercent: isNaN(parsedPercent) ? 0.0 : round(parsedPercent / 100)
+          }]
+        })
     )
   }
 }
