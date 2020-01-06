@@ -72,8 +72,8 @@ const diskCollector = async () => {
           return [filesystem, {
             size: size,
             used: used,
-            avail: avail,
-            usedPercent: isNaN(parsedPercent) ? 0.0 : round(parsedPercent / 100)
+            available: avail,
+            utilization: isNaN(parsedPercent) ? 0.0 : round(parsedPercent / 100)
           }]
         })
     )
