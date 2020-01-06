@@ -1,5 +1,7 @@
 const os = require('os')
 const psaux = require('psaux')
+const childProcess = require('child_process')
+const { promisify } = require('util')
 
 const pm2 = require('./pm2wrapper')
 const { get, requestRpc } = require('./utils')
@@ -56,7 +58,26 @@ const rpcCollector = async ({ rpc }) => {
   return result
 }
 
-const pm2Watcher = async ({ http, responseField, serviceId, rpc, makeSupportWallet }, serviceName, monitorHost) => {
+const diskCollector = async () => {
+  const df = await promisify(childProcess.exec)('df -h --sync')
+
+  const diskUsages = df.stdout.split('\n').slice(1)
+  const hardDiskFilesystemPattern = /^\/dev\/sd[a-z][0-9]?$/
+  return {
+    disk: Object.fromEntries(
+      diskUsages.map(usage => usage.split(/\s+/))
+        .filter(([filesystem]) => hardDiskFilesystemPattern.test(filesystem))
+        .map(([filesystem, size, used, avail, usedPercent]) => [filesystem, {
+          size: size,
+          used: used,
+          avail: avail,
+          usedPercent: usedPercent
+        }])
+    )
+  }
+}
+
+const pm2Watcher = async ({ http, responseField, serviceId, rpc, makeSupportWallet, checkDisk }, serviceName, monitorHost) => {
   const totalMemory = os.totalmem()
   const instances = await pm2.describe(serviceName)
   if (instances.length === 0) {
@@ -75,6 +96,9 @@ const pm2Watcher = async ({ http, responseField, serviceId, rpc, makeSupportWall
   }
   if (rpc != null) {
     Object.assign(report, await rpcCollector({ rpc: rpc }))
+  }
+  if (checkDisk) {
+    Object.assign(report, await diskCollector())
   }
 
   report.serviceName = serviceName
@@ -103,11 +127,11 @@ const pm2Watcher = async ({ http, responseField, serviceId, rpc, makeSupportWall
   return report
 }
 
-const commonWatcher = async ({ http, responseField, serviceId, rpc, instanceType }, serviceName, monitorHost) => {
+const commonWatcher = async ({ http, responseField, serviceId, rpc, instanceType, checkDisk }, serviceName, monitorHost) => {
   const instances = (await psaux()).query({ command: `~${instanceType}` })
-  if (instances.length === 0) {
-    throw Error('InstanceNotFound')
-  }
+  // if (instances.length === 0) {
+  //   throw Error('InstanceNotFound')
+  // }
 
   const report = instances.reduce((totalUsage, instance) => ({
     cpuUsage: totalUsage.cpuUsage + instance.cpu / 100,
@@ -121,6 +145,9 @@ const commonWatcher = async ({ http, responseField, serviceId, rpc, instanceType
   }
   if (rpc != null) {
     Object.assign(report, await rpcCollector({ rpc: rpc }))
+  }
+  if (checkDisk) {
+    Object.assign(report, await diskCollector())
   }
 
   report.serviceName = serviceName

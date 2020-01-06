@@ -3,9 +3,7 @@
     "targets": {
         "test02": {
             "instanceType": "uwsgi",
-            "rpc": {
-                "uri": "http://trinito.kr/v1/status",
-            }
+            "checkDisk": true
         }
     }
 }
