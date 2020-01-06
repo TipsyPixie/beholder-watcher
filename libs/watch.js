@@ -71,7 +71,7 @@ const diskCollector = async () => {
           size: size,
           used: used,
           avail: avail,
-          usedPercent: usedPercent
+          usedPercent: parseInt(usedPercent.replace('%', '')).isNaN() ? 0.0 : round(parseInt(usedPercent.replace('%', '')) / 100)
         }])
     )
   }
