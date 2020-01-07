@@ -58,7 +58,7 @@ const rpcCollector = async ({ rpc }) => {
   return result
 }
 
-const diskCollector = async ({ filesystems: checkDisk }) => {
+const diskCollector = async ({ checkDisk }) => {
   const df = await promisify(childProcess.exec)('df -h --sync')
 
   const diskUsages = df.stdout.split('\n').slice(1)
