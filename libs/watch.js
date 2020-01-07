@@ -58,7 +58,7 @@ const rpcCollector = async ({ rpc }) => {
   return result
 }
 
-const diskCollector = async () => {
+const diskCollector = async ({ filesystems }) => {
   const df = await promisify(childProcess.exec)('df -h --sync')
 
   const diskUsages = df.stdout.split('\n').slice(1)
@@ -66,7 +66,7 @@ const diskCollector = async () => {
   return {
     disk: Object.fromEntries(
       diskUsages.map(usage => usage.split(/\s+/))
-        .filter(([filesystem]) => hardDiskFilesystemPattern.test(filesystem))
+        .filter(([filesystem]) => (filesystems instanceof Array) ? filesystems.includes(filesystem) : hardDiskFilesystemPattern.test(filesystem))
         .map(([filesystem, size, used, avail, usedPercent]) => {
           const parsedPercent = (usedPercent != null) ? parseInt(usedPercent.replace('%', '')) : 0.0
           return [filesystem, {
@@ -101,7 +101,7 @@ const pm2Watcher = async ({ http, responseField, serviceId, rpc, makeSupportWall
     Object.assign(report, await rpcCollector({ rpc: rpc }))
   }
   if (checkDisk) {
-    Object.assign(report, await diskCollector())
+    Object.assign(report, await diskCollector({ filesystems: checkDisk }))
   }
 
   report.serviceName = serviceName
