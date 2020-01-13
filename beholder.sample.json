@@ -1,9 +1,13 @@
 {
-    "monitorHost": "http://localhost:3000",
+    "monitorHost": "http://monitor-dev.dxm.kr",
     "targets": {
         "test02": {
             "instanceType": "uwsgi",
-            "checkDisk": true
+            "rpc": {
+                "uri": "https://api.baobab.klaytn.net:8651",
+                "method": "klay_blockNumber",
+                "chain": "klaytn"
+            }
         }
     }
 }

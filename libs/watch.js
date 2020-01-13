@@ -45,12 +45,13 @@ const rpcCollector = async ({ rpc }) => {
   const result = (typeof response === 'object') ? { rpc: true, ...response } : { rpc: true }
   if (typeof rpc.chain === 'string') {
     result.blockNumber = {}
-    const radix = [10, 16]
-    for (let i = 0; i < radix.length; i++) {
-      const blockNumber = parseInt(response, radix[i])
-      if (!isNaN(blockNumber)) {
-        result.blockNumber[rpc.chain] = [blockNumber]
-        break
+    if (typeof response === 'number') {
+      result.blockNumber[rpc.chain] = [response]
+    } else if (typeof response === 'string') {
+      if (response.startsWith('0x')) {
+        result.blockNumber[rpc.chain] = [parseInt(response, 16)]
+      } else {
+        result.blockNumber[rpc.chain] = [parseInt(response)]
       }
     }
   }
