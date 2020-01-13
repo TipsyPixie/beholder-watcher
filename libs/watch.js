@@ -45,14 +45,13 @@ const rpcCollector = async ({ rpc }) => {
   const result = (typeof response === 'object') ? { rpc: true, ...response } : { rpc: true }
   if (typeof rpc.chain === 'string') {
     result.blockNumber = {}
-    switch (rpc.chain) {
-      case 'ethereum':
-      case 'orbit':
-        result.blockNumber[rpc.chain] = [parseInt(response, 16)]
+    const radix = [10, 16]
+    for (let i = 0; i < radix.length; i++) {
+      const blockNumber = parseInt(response, radix[i])
+      if (!isNaN(blockNumber)) {
+        result.blockNumber[rpc.chain] = [blockNumber]
         break
-      default:
-        result.blockNumber[rpc.chain] = [response]
-        break
+      }
     }
   }
   return result
