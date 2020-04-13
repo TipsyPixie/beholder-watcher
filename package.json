@@ -1,7 +1,7 @@
 {
     "name": "@tipsypixie/beholder-watcher",
-    "version": "1.3.7",
-    "license": "Copyright (c) DXM corporation. All rights reserved.",
+    "version": "1.3.8",
+    "license": "UNLICENSED",
     "author": {
         "name": "Seongjae Hwang",
         "email": "s.hwang@dxmcorp.com"
@@ -12,7 +12,8 @@
     "scripts": {
         "format": "yarn lint",
         "lint": "standard",
-        "sort-dep": "sort-package-json",
+        "lint:fix": "standard --fix",
+        "sort-pack": "sort-package-json",
         "start": "node ./index.js"
     },
     "husky": {
@@ -22,11 +23,11 @@
     },
     "lint-staged": {
         "**/*.{js,jsx}": [
-            "yarn lint --fix",
+            "yarn lint:fix",
             "git add"
         ],
         "./package.json": [
-            "yarn sort-dep",
+            "yarn sort-pack",
             "git add"
         ]
     },

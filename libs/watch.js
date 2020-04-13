@@ -80,7 +80,23 @@ const diskCollector = async ({ checkDisk }) => {
   }
 }
 
-const pm2Watcher = async ({ http, responseField, serviceId, rpc, makeSupportWallet, checkDisk }, serviceName, monitorHost) => {
+const priceFeedCollector = async ({ priceFeed }) => {
+  try {
+    const response = await get({ ...priceFeed, uri: encodeURI(priceFeed.uri) })
+    if (typeof response === 'object') {
+      return {
+        priceFeed: Object.fromEntries(
+          Object.values(response.lastTxInfo).map(tx => [tx.name, new Date(tx.at).getTime()])
+        )
+      }
+    }
+  } catch (err) {
+    console.error(err.message)
+    return { priceFeed: false }
+  }
+}
+
+const pm2Watcher = async ({ http, responseField, serviceId, rpc, makeSupportWallet, checkDisk, priceFeed }, serviceName, monitorHost) => {
   const totalMemory = os.totalmem()
   const instances = await pm2.describe(serviceName)
   if (instances.length === 0) {
@@ -102,6 +118,9 @@ const pm2Watcher = async ({ http, responseField, serviceId, rpc, makeSupportWall
   }
   if (checkDisk) {
     Object.assign(report, await diskCollector({ checkDisk: checkDisk }))
+  }
+  if (priceFeed != null) {
+    Object.assign(report, await priceFeedCollector({ priceFeed: priceFeed }))
   }
 
   report.serviceName = serviceName
@@ -191,4 +210,4 @@ const watch = async (serviceName, serverInfo, monitorHost) => {
   return watcher(serverInfo.instanceType.trim().toLowerCase())(serverInfo, serviceName, monitorHost)
 }
 
-module.exports = watch
+module.exports = { watch, priceFeedCollector }
