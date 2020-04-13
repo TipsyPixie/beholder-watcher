@@ -213,4 +213,4 @@ const watch = async (serviceName, serverInfo, monitorHost) => {
   return watcher(serverInfo.instanceType.trim().toLowerCase())(serverInfo, serviceName, monitorHost)
 }
 
-module.exports = { watch }
+module.exports = watch
