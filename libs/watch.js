@@ -92,7 +92,7 @@ const priceFeedCollector = async ({ priceFeed }) => {
     }
   } catch (err) {
     console.error(err.message)
-    return { priceFeed: false }
+    return { priceFeed: {} }
   }
 }
 
