@@ -149,7 +149,7 @@ const pm2Watcher = async ({ http, responseField, serviceId, rpc, makeSupportWall
   return report
 }
 
-const commonWatcher = async ({ http, responseField, serviceId, rpc, instanceType, checkDisk }, serviceName, monitorHost) => {
+const commonWatcher = async ({ http, responseField, serviceId, rpc, instanceType, checkDisk, priceFeed }, serviceName, monitorHost) => {
   const instances = (await psaux()).query({ command: `~${instanceType}` })
   // if (instances.length === 0) {
   //   throw Error('InstanceNotFound')
@@ -170,6 +170,9 @@ const commonWatcher = async ({ http, responseField, serviceId, rpc, instanceType
   }
   if (checkDisk) {
     Object.assign(report, await diskCollector({ checkDisk: checkDisk }))
+  }
+  if (priceFeed != null) {
+    Object.assign(report, await priceFeedCollector({ priceFeed: priceFeed }))
   }
 
   report.serviceName = serviceName
